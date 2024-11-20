@@ -36,9 +36,11 @@ app.get('/students', async (req, res) => {
 
 app.post('/students', async (req, res) => {  
     try {  
+        console.log('Creating student with data:', req.body); // Log the request body
         const student = await Student.create(req.body);  
         res.status(201).json(student);  
     } catch (error) {  
+        console.error('Error creating student:', error);
         res.status(400).json({ error: error.message });  
     }  
 });  
@@ -50,6 +52,7 @@ app.delete('/students/:id', async (req, res) => {
         await student.destroy();  
         res.status(204).send();  
     } catch (error) {  
+        console.error('Error deleting student:', error);
         res.status(500).json({ error: error.message });  
     }  
 });  
@@ -58,9 +61,11 @@ app.put('/students/:id', async (req, res) => {
     try {  
         const student = await Student.findByPk(req.params.id);  
         if (!student) return res.status(404).json({ error: 'Student not found' });  
+        console.log('Updating student with data:', req.body); // Log the request body
         await student.update(req.body);  
         res.status(200).json(student);  
     } catch (error) {  
+        console.error('Error updating student:', error);
         res.status(400).json({ error: error.message });  
     }  
 });  
@@ -78,9 +83,15 @@ app.get('/attendance', async (req, res) => {
 
 app.post('/attendance', async (req, res) => {  
     try {  
-        const attendance = await Attendance.create(req.body);  
+        console.log('Creating attendance with data:', req.body); // Log the request body
+        const attendance = await Attendance.create({
+            studentId: req.body.studentId,
+            attendanceDate: req.body.attendanceDate,
+            status: req.body.status
+        });
         res.status(201).json(attendance);  
     } catch (error) {  
+        console.error('Error creating attendance:', error);
         res.status(400).json({ error: error.message });  
     }  
 });  
@@ -92,6 +103,7 @@ app.delete('/attendance/:id', async (req, res) => {
         await attendance.destroy();  
         res.status(204).send();  
     } catch (error) {  
+        console.error('Error deleting attendance:', error);
         res.status(500).json({ error: error.message });  
     }  
 });  
@@ -100,9 +112,11 @@ app.put('/attendance/:id', async (req, res) => {
     try {  
         const attendance = await Attendance.findByPk(req.params.id);  
         if (!attendance) return res.status(404).json({ error: 'Attendance record not found' });  
+        console.log('Updating attendance with data:', req.body); // Log the request body
         await attendance.update(req.body);  
         res.status(200).json(attendance);  
     } catch (error) {  
+        console.error('Error updating attendance:', error);
         res.status(400).json({ error: error.message });  
     }  
 });  
