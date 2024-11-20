@@ -6,6 +6,9 @@ const { sequelize, Student, Attendance } = require('./models'); // Adjust path a
 const app = express();  
 const PORT = process.env.PORT || 3000;  
 
+// Set EJS as the templating engine
+app.set('view engine', 'ejs');
+
 // Middleware  
 app.use(cors());  
 app.use(bodyParser.json()); // To parse JSON request bodies  
@@ -17,7 +20,7 @@ sequelize.sync()
 
 // Root route  
 app.get('/', (req, res) => {  
-    res.send('Welcome to the Student Attendance API');  
+    res.render('index'); // Render the index.ejs file
 });  
 
 // Student Routes  
