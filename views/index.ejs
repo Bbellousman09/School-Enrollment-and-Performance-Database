@@ -3,252 +3,128 @@
 <head>  
     <meta charset="UTF-8">  
     <meta name="viewport" content="width=device-width, initial-scale=1.0">  
-    <title>Student Profiles and Attendance</title>  
+    <title>Manage Students and Attendance</title>  
     <style>  
-        body {  
-            font-family: Arial, sans-serif;  
-            margin: 20px;  
-            background-color: #f4f4f9;  
-        }  
-
-        h1 {  
-            text-align: center;  
-        }  
-
-        form {  
-            display: flex;  
-            flex-direction: column;  
-            gap: 10px;  
-            max-width: 400px;  
-            margin: auto;  
-        }  
-
-        input, select {  
-            padding: 10px;  
-            border: 1px solid #ccc;  
-            border-radius: 4px;  
-        }  
-
-        button {  
-            padding: 10px;  
-            color: white;  
-            background-color: #007bff;  
-            border: none;  
-            border-radius: 4px;  
-            cursor: pointer;  
-        }  
-
-        button:hover {  
-            background-color: #0056b3;  
-        }  
-
-        ul {  
-            list-style: none;  
-            padding: 0;  
-            max-width: 400px;  
-            margin: 20px auto;  
-            background-color: white;  
-            border-radius: 4px;  
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);  
-        }  
-
-        li {  
-            padding: 10px;  
-            border-bottom: 1px solid #ddd;  
-            display: flex;  
-            justify-content: space-between;  
-            align-items: center;  
-        }  
-
-        li:last-child {  
-            border-bottom: none;  
-        }  
-
-        .action-buttons {  
-            display: flex;  
-            gap: 10px;  
-        }  
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f9; }  
+        h1 { text-align: center; }  
+        form { display: flex; flex-direction: column; gap: 10px; max-width: 400px; margin: auto; }  
+        input, select, button { padding: 10px; border: 1px solid #ccc; border-radius: 4px; }  
+        button { color: white; background-color: #007bff; border: none; cursor: pointer; }  
+        button:hover { background-color: #0056b3; }  
+        .notification, .error { text-align: center; margin: 10px 0; }  
+        .notification { color: green; }  
+        .error { color: red; }  
     </style>  
 </head>  
 <body>  
 
-<h1>Student Profiles and Attendance</h1>  
+<h1>Student and Attendance Management</h1>  
+
+<div class="notification" id="notification"></div>  
+<div class="error" id="error"></div>  
 
 <!-- Form to add new student -->  
 <form id="studentForm">  
+    <label for="first_name">First Name</label>  
     <input type="text" name="first_name" placeholder="First Name" required>  
+    <label for="last_name">Last Name</label>  
     <input type="text" name="last_name" placeholder="Last Name" required>  
+    <label for="dob">Date of Birth</label>  
     <input type="date" name="dob" required>  
+    <label for="email">Email</label>  
     <input type="email" name="email" placeholder="Email" required>  
     <button type="submit">Add Student</button>  
 </form>  
 
 <!-- Form to add attendance record -->  
 <form id="attendanceForm">  
-    <select name="studentId" required></select>
+    <label for="studentId">Select Student</label>  
+    <select name="studentId" required></select>  
+    <label for="attendanceDate">Attendance Date</label>  
     <input type="date" name="attendanceDate" required>  
-    <select name="status" required>
-        <option value="Present">Present</option>
-        <option value="Absent">Absent</option>
+    <label for="status">Status</label>  
+    <select name="status" required>  
+        <option value="Present">Present</option>  
+        <option value="Absent">Absent</option>  
     </select>  
     <button type="submit">Add Attendance</button>  
 </form>  
 
-<ul id="studentList"></ul>  
-<ul id="attendanceList"></ul>  
-
 <script>  
-let currentStudentId = null; // To track the current student for editing  
-
-// Fetch students and display them  
-async function fetchStudents() {  
-    try {  
-        const response = await fetch('/students');  
-        const data = await response.json();  
-        const studentList = document.getElementById('studentList');  
-        const studentSelect = document.querySelector('select[name="studentId"]');
-        studentList.innerHTML = ''; // Clear the list before adding new entries  
-        studentSelect.innerHTML = '<option value="">Select Student</option>'; // Clear student dropdown before adding new entries
-
-        data.forEach(student => {  
-            const li = document.createElement('li');  
-            li.textContent = `${student.first_name} ${student.last_name} (${student.email})`;  
-            
-            const actionButtons = document.createElement('div');  
-            actionButtons.classList.add('action-buttons');  
-
-            // Create a delete button  
-            const deleteButton = document.createElement('button');  
-            deleteButton.textContent = 'Delete';  
-            deleteButton.addEventListener('click', async () => {  
-                await fetch(`/students/${student.id}`, { method: 'DELETE' });  
-                fetchStudents(); // Refresh the list  
-                fetchAttendance(); // Refresh attendance list  
-            });  
-            actionButtons.appendChild(deleteButton);  
-            
-            // Create an edit button  
-            const editButton = document.createElement('button');  
-            editButton.textContent = 'Edit';  
-            editButton.addEventListener('click', () => {  
-                // Fill the form with existing student data  
-                document.querySelector('input[name="first_name"]').value = student.first_name;  
-                document.querySelector('input[name="last_name"]').value = student.last_name;  
-                document.querySelector('input[name="dob"]').value = new Date(student.dob).toISOString().split('T')[0];  
-                document.querySelector('input[name="email"]').value = student.email;  
-
-                currentStudentId = student.id; // Set current student ID for editing  
-                document.querySelector('button[type="submit"]').textContent = 'Update Student'; // Change button text  
-            });  
-            actionButtons.appendChild(editButton);  
-            
-            li.appendChild(actionButtons);  
-            studentList.appendChild(li);
-
-            // Add student to dropdown
-            const option = document.createElement('option');
-            option.value = student.id;
-            option.textContent = `${student.first_name} ${student.last_name}`;
-            studentSelect.appendChild(option);
-        });  
-    } catch (error) {  
-        console.error('Error fetching students:', error);  
-    }  
+// Function to display notifications  
+function showNotification(message) {  
+    const notification = document.getElementById('notification');  
+    notification.textContent = message;  
+    setTimeout(() => notification.textContent = '', 3000);  
 }  
 
-// Fetch attendance records and display them  
-async function fetchAttendance() {  
-    try {  
-        const response = await fetch('/attendance');  
-        const data = await response.json();  
-        const attendanceList = document.getElementById('attendanceList');  
-        attendanceList.innerHTML = ''; // Clear the list before adding new entries  
-
-        data.forEach(record => {  
-            const li = document.createElement('li');  
-            li.textContent = `Student ID: ${record.studentId}, Date: ${new Date(record.attendanceDate).toLocaleDateString()}, Status: ${record.status}`;  
-            
-            const actionButtons = document.createElement('div');  
-            actionButtons.classList.add('action-buttons');  
-
-            // Create a delete button  
-            const deleteButton = document.createElement('button');  
-            deleteButton.textContent = 'Delete';  
-            deleteButton.addEventListener('click', async () => {  
-                await fetch(`/attendance/${record.id}`, { method: 'DELETE' });  
-                fetchAttendance(); // Refresh the list  
-            });  
-            actionButtons.appendChild(deleteButton);  
-            
-            li.appendChild(actionButtons);  
-            attendanceList.appendChild(li);  
-        });  
-    } catch (error) {  
-        console.error('Error fetching attendance records:', error);  
-    }  
+// Function to display error messages  
+function showError(message) {  
+    const error = document.getElementById('error');  
+    error.textContent = message;  
+    setTimeout(() => error.textContent = '', 3000);  
 }  
 
+// Handle student form submission  
 document.getElementById('studentForm').addEventListener('submit', async (e) => {  
     e.preventDefault(); // Prevents the form from refreshing the page  
     const formData = new FormData(e.target);  
     const data = Object.fromEntries(formData.entries());  
 
     try {  
-        if (currentStudentId) { // Checking if we are in edit mode  
-            await fetch(`/students/${currentStudentId}`, {  
-                method: 'PUT', // Update existing student  
-                headers: {  
-                    'Content-Type': 'application/json'  
-                },  
-                body: JSON.stringify(data),  
-            });  
-
-            currentStudentId = null; // Reset after update  
-            document.querySelector('button[type="submit"]').textContent = 'Add Student'; // Reset button text  
-        } else {  
-            // Post request to add new student  
-            await fetch('/students', {  
-                method: 'POST',  
-                headers: {  
-                    'Content-Type': 'application/json'  
-                },  
-                body: JSON.stringify(data),  
-            });  
-        }  
-        
-        fetchStudents(); // Refresh the student list  
-        fetchAttendance(); // Refresh attendance list  
-        e.target.reset(); // Reset form fields   
+        await fetch('/students', {  
+            method: 'POST',  
+            headers: { 'Content-Type': 'application/json' },  
+            body: JSON.stringify(data),  
+        });  
+        showNotification('Student added successfully!');  
+        e.target.reset(); // Reset form fields  
     } catch (error) {  
-        console.error('Error submitting form:', error);  
+        showError('Error adding student: ' + error.message);  
     }  
 });  
 
+// Handle attendance form submission  
 document.getElementById('attendanceForm').addEventListener('submit', async (e) => {  
     e.preventDefault(); // Prevents the form from refreshing the page  
     const formData = new FormData(e.target);  
     const data = Object.fromEntries(formData.entries());  
 
     try {  
-        // Post request to add new attendance record  
         await fetch('/attendance', {  
             method: 'POST',  
-            headers: {  
-                'Content-Type': 'application/json'  
-            },  
+            headers: { 'Content-Type': 'application/json' },  
             body: JSON.stringify(data),  
         });  
-
-        fetchAttendance(); // Refresh the attendance list  
+        showNotification('Attendance added successfully!');  
         e.target.reset(); // Reset form fields  
     } catch (error) {  
-        console.error('Error submitting form:', error);  
+        showError('Error adding attendance: ' + error.message);  
     }  
 });  
 
-fetchStudents(); // Initial fetch  
-fetchAttendance(); // Initial fetch  
-</script>  
+// Initialize student dropdown  
+async function fetchStudents() {  
+    try {  
+        const response = await fetch('/students');  
+        const students = await response.json();  
+        const studentSelect = document.querySelector('select[name="studentId"]');  
+        studentSelect.innerHTML = ''; // Clear previous options  
 
+        students.forEach(student => {  
+    const option = document.createElement('option');  
+    option.value = student.id;  
+    // Adjust these property names based on your actual data structure  
+    option.textContent = `${student.first_name || ''} ${student.last_name || ''}`.trim() || 'Unknown Student';  
+    studentSelect.appendChild(option);  
+});
+    } catch (error) {  
+        console.error('Error fetching students:', error);  
+    }  
+}  
+
+fetchStudents(); // Initial fetch for students  
+
+</script>  
 </body>  
 </html>
