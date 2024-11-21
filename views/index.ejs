@@ -85,8 +85,8 @@
 
 <!-- Form to add attendance record -->  
 <form id="attendanceForm">  
-    <select name="student_id" required></select>
-    <input type="date" name="attendance_date" required>  
+    <select name="studentId" required></select>
+    <input type="date" name="attendanceDate" required>  
     <select name="status" required>
         <option value="Present">Present</option>
         <option value="Absent">Absent</option>
@@ -106,7 +106,7 @@ async function fetchStudents() {
         const response = await fetch('/students');  
         const data = await response.json();  
         const studentList = document.getElementById('studentList');  
-        const studentSelect = document.querySelector('select[name="student_id"]');
+        const studentSelect = document.querySelector('select[name="studentId"]');
         studentList.innerHTML = ''; // Clear the list before adding new entries  
         studentSelect.innerHTML = '<option value="">Select Student</option>'; // Clear student dropdown before adding new entries
 
